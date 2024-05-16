@@ -2,8 +2,7 @@ import streamlit as st
 
 # Set up the main application layout
 st.title("Text Summarizer with Grammar Checker")
-st.subheader("Group: Text Wizards")
-st.write("Group Members: Alice, Bob, Charlie, Dana")
+
 
 # Input section for user to enter text
 st.header("Enter Text")
