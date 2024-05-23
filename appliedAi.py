@@ -1,50 +1,34 @@
-import streamlit as st
+from rake_nltk import Rake
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lsa import LsaSummarizer
-import language_tool_python
 
-st.title("Text Summarizer with Grammar Checker")
+# Input text to be summarized
+input_text = """
+In a recent article on the transformative potential of artificial intelligence in healthcare, experts highlighted the significant strides AI is making in diagnostics and treatment personalization. Advanced machine learning algorithms are now capable of analyzing vast datasets from medical records, imaging studies, and genetic information to identify patterns and predict disease outcomes with unprecedented accuracy. This technological leap not only enhances early detection of conditions like cancer and heart disease but also tailors treatment plans to individual patients, improving efficacy and reducing adverse effects. As AI continues to evolve, its integration into healthcare promises to revolutionize patient care and streamline clinical workflows, ultimately leading to better health outcomes and more efficient medical practices.
+"""
 
-st.header("Enter Text")
-input_text = st.text_area("Paste your text here:", height=200)
+# Extract keywords using RAKE
+r = Rake()
+r.extract_keywords_from_text(input_text)
+extracted_keywords = r.get_ranked_phrases_with_scores()[:5]  # Get top 5 ranked phrases
 
-if st.button("Summarize Text"):
-    if input_text:
-        parser = PlaintextParser.from_string(input_text, Tokenizer("english"))
-        summarizer = LsaSummarizer()
-        summary = summarizer(parser.document, sentences_count=2)
-        summarized_text = " ".join([str(sentence) for sentence in summary])
-        st.success(summarized_text)
-    else:
-        st.warning("Please enter text to summarize.")
+# Parse the input text
+parser = PlaintextParser.from_string(input_text, Tokenizer("english"))
 
-if st.button("Check Grammar"):
-    if input_text:
-        tool = language_tool_python.LanguageTool('en-US')
-        matches = tool.check(input_text)
-        corrected_text = language_tool_python.utils.correct(input_text, matches)
-        st.success(corrected_text)
-    else:
-        st.warning("Please enter text to check grammar.")
+# Create an LSA summarizer
+summarizer = LsaSummarizer()
 
-st.header("Output")
-st.write("Here you will see the summarized and/or grammar-checked text based on your actions above.")
+# Generate the summary
+summary = summarizer(parser.document, sentences_count=2)  # You can adjust the number of sentences in the summary
 
-if st.checkbox("Show Summarized and Corrected Text"):
-    if input_text:
-        parser = PlaintextParser.from_string(input_text, Tokenizer("english"))
-        summarizer = LsaSummarizer()
-        summary = summarizer(parser.document, sentences_count=2)
-        summarized_text = " ".join([str(sentence) for sentence in summary])
-        
-        tool = language_tool_python.LanguageTool('en-US')
-        matches = tool.check(summarized_text)
-        combined_text = language_tool_python.utils.correct(summarized_text, matches)
-        
-        st.info(combined_text)
-    else:
-        st.warning("Please enter text to summarize and check grammar.")
+# Output the summary and extracted keywords
+print("Original Text:")
+print(input_text)
+print("\nSummary:")
+for sentence in summary:
+    print(sentence)
 
-# Footer
-st.write("This application provides both text summarization and grammar checking functionalities. Enter your text above to get started.")
+print("\nExtracted Keywords:")
+for score, phrase in extracted_keywords:
+    print(f"{phrase} (Score: {score})")
